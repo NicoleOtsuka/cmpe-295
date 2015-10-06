@@ -75,6 +75,13 @@ struct zynq_ipif {
 	int (*isr) (struct zynq_ipif *);
 };
 
+struct zynq_ipif_config {
+	struct zynq_ipif_regmap *regmap;
+	u32 regmap_size;
+
+	int (*isr) (struct zynq_ipif *);
+};
+
 int reg_init(struct zynq_ipif_regmap *, u32);
 int reg_read(struct zynq_ipif_regmap *, u32, u32 *);
 int reg_write(struct zynq_ipif_regmap *, u32, u32);
@@ -86,5 +93,5 @@ int dma_write_buffer(struct zynq_ipif_dma *, u8 *, u32);
 int dma_enable(struct zynq_ipif_dma *, bool);
 int dma_start_server(struct zynq_ipif_dma_share *);
 
-int zynq_ipif_init(struct zynq_ipif *, struct zynq_ipif_regmap *, u32);
+int zynq_ipif_init(struct zynq_ipif *, struct zynq_ipif_config *);
 int zynq_ipif_start_dma(struct zynq_ipif_dma_share *);

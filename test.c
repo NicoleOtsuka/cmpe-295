@@ -57,6 +57,11 @@ static struct zynq_ipif_regmap regmap[] = {
 	{0x344,	0,	1,	0,	1},	/* REG_DEBG_IRQ_SIG */
 };
 
+struct zynq_ipif_config ipif_config = {
+	.regmap = regmap,
+	.regmap_size = ARRAY_SIZE(regmap),
+};
+
 #define TEST_SIZE	1024
 static int test_buf[2][TEST_SIZE];
 
@@ -132,7 +137,7 @@ int main()
 	char cmd[256];
 	int ret = 0;
 
-	zynq_ipif_init(&ipif, regmap, ARRAY_SIZE(regmap));
+	zynq_ipif_init(&ipif, &ipif_config);
 
 	for (i = 0; i < ARRAY_SIZE(test_buf[0]); i++)
 		test_buf[0][i] = test++;

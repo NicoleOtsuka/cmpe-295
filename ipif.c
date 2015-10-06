@@ -266,15 +266,19 @@ int dma_enable(struct zynq_ipif_dma *dma, bool enable)
 	return 0;
 }
 
-int zynq_ipif_init(struct zynq_ipif *ipif,
-		   struct zynq_ipif_regmap *regmap, u32 size)
+int zynq_ipif_init(struct zynq_ipif *ipif, struct zynq_ipif_config *ipif_config)
 {
 	struct zynq_ipif_dma_share *dma_share = &ipif->dma_share;
 	int i, ret;
 
 	memset(ipif, 0, sizeof(*ipif));
 
-	ipif->regmap = regmap;
+	if (!ipif_config->regmap) {
+		printf("Null regmap\n");
+		return -ENODEV;
+	}
+
+	ipif->regmap = ipif_config->regmap;
 
 	for (i = 0; i < ARRAY_SIZE(ipif->dma); i++) {
 		ipif->dma[i].index = i;
@@ -285,7 +289,7 @@ int zynq_ipif_init(struct zynq_ipif *ipif,
 	dma_share->max_conn = DMA_CHAN_MAX;
 	dma_share->epfd = epoll_create(DMA_CHAN_MAX);
 
-	reg_init(regmap, size);
+	reg_init(ipif->regmap, ipif_config->regmap_size);
 }
 
 int zynq_ipif_start_dma(struct zynq_ipif_dma_share *dma_share)
