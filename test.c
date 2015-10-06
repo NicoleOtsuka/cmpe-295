@@ -137,10 +137,10 @@ int main()
 	char cmd[256];
 	int ret = 0;
 
-	zynq_ipif_init(&ipif, &ipif_config);
-
 	for (i = 0; i < ARRAY_SIZE(test_buf[0]); i++)
 		test_buf[0][i] = test++;
+
+	zynq_ipif_init(&ipif, &ipif_config);
 
 	reg_write(regmap, 0x0, 0x1f);
 	reg_write(regmap, 0x0, 0x0);
@@ -148,7 +148,6 @@ int main()
 	reg_write(regmap, 0x1c, 130000);
 
 	dma_init(&ipif.dma[0], &dma_config[0]);
-
 	dma_init(&ipif.dma[2], &dma_config[2]);
 
 	zynq_ipif_start_dma(&ipif.dma_share);
@@ -180,7 +179,7 @@ int main()
 	printf("test %s, %d, %d\n", ret ? "failed" : "succeed",
 	       ipif.dma[0].io_ptr, ipif.dma[2].io_ptr);
 
-	printf("dumping results\n");
+	printf("dumping results...\n");
 	sprintf(cmd, "rm -f dump");
 	system(cmd);
 	for (i = 0; i < ARRAY_SIZE(test_buf[0]); i++) {

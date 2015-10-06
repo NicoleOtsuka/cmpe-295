@@ -279,6 +279,7 @@ int zynq_ipif_init(struct zynq_ipif *ipif, struct zynq_ipif_config *ipif_config)
 	}
 
 	ipif->regmap = ipif_config->regmap;
+	ipif->irq_handler = ipif_config->irq_handler;
 
 	for (i = 0; i < ARRAY_SIZE(ipif->dma); i++) {
 		ipif->dma[i].index = i;

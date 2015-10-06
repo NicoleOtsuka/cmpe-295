@@ -72,14 +72,14 @@ struct zynq_ipif {
 	struct zynq_ipif_dma_share dma_share;
 	struct zynq_ipif_regmap *regmap;
 
-	int (*isr) (struct zynq_ipif *);
+	int (*irq_handler) (struct zynq_ipif *);
 };
 
 struct zynq_ipif_config {
 	struct zynq_ipif_regmap *regmap;
 	u32 regmap_size;
 
-	int (*isr) (struct zynq_ipif *);
+	int (*irq_handler) (struct zynq_ipif *);
 };
 
 int reg_init(struct zynq_ipif_regmap *, u32);
