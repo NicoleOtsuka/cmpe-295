@@ -110,14 +110,6 @@ static int dma_default_condition(struct zynq_ipif_dma *dma)
 static void *DMA_thread(void *threadid)
 {
 	struct zynq_ipif_dma *dma = (struct zynq_ipif_dma *)threadid;
-	bool access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
-	u32 dma_size = dma->buf_size * dma->buf_num;
-
-	if (access == DMA_BUF_ACCESS_TYPE_MMAP) {
-		dma->buf = mmap(0, PAGE_ALIGN(dma_size),
-				dma->direction ? PROT_WRITE : PROT_READ,
-				MAP_SHARED, dma->fd, 0);
-	}
 
 	if (!dma->condition)
 		dma->condition = dma_default_condition;
@@ -160,6 +152,7 @@ loop:
 
 int dma_init(struct zynq_ipif_dma *dma, struct zynq_ipif_dma_config *dma_config)
 {
+	u32 dma_size = dma_config->buf_size * dma_config->buf_num;
 	struct zynq_ipif_dma_share *dma_share;
 	char tmp[STRING_MAX];
 	int flags, ret;
@@ -209,14 +202,20 @@ int dma_init(struct zynq_ipif_dma *dma, struct zynq_ipif_dma_config *dma_config)
 	if (ret < 0)
 		printf("Error epoll_ctl: %i\n", errno);
 
+	if (dma_config->access & DMA_BUF_ACCESS_TYPE_MASK == DMA_BUF_ACCESS_TYPE_MMAP) {
+		dma->buf = mmap(0, PAGE_ALIGN(dma_size),
+				dma_config->direction ? PROT_READ : PROT_WRITE,
+				MAP_SHARED, dma->fd, 0);
+	}
+
 	/* Copy them to prevent from being modified on the fly */
 	dma->width = dma_config->width;
 	dma->burst = dma_config->burst;
 	dma->access = dma_config->access;
 	dma->buf_num = dma_config->buf_num;
 	dma->buf_size = dma_config->buf_size;
-	dma->direction = dma_config->direction;
 	dma->callback = dma_config->callback;
+	dma->direction = dma_config->direction;
 	dma->condition = dma_config->condition;
 
 	dma->active = 1;

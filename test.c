@@ -62,12 +62,12 @@ static int test_buf[2][TEST_SIZE];
 
 int DMA_input_callback(struct zynq_ipif_dma *dma)
 {
-	bool access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
+	u32 access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
 	u32 buf_max = DATA_BURST * PERIOD_NUM;
 	u32 *buf = (u32 *)dma->buf;
 	int i;
 
-	for (i = 0; access && i < DATA_BURST; i++)
+	for (i = 0; access && i < DATA_BURST && dma->io_ptr < TEST_SIZE; i++)
 		buf[dma->buf_ptr++ % buf_max] = test_buf[0][dma->io_ptr++];
 
 	if (access == DMA_BUF_ACCESS_TYPE_RWIO)
@@ -78,12 +78,12 @@ int DMA_input_callback(struct zynq_ipif_dma *dma)
 
 int DMA_output_callback(struct zynq_ipif_dma *dma)
 {
-	bool access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
+	u32 access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
 	u32 buf_max = DATA_BURST * PERIOD_NUM;
 	u32 *buf = (u32 *)dma->buf;
 	int i;
 
-	for (i = 0; access && i < DATA_BURST; i++)
+	for (i = 0; access && i < DATA_BURST && dma->io_ptr < TEST_SIZE; i++)
 		test_buf[1][dma->io_ptr++] = buf[dma->buf_ptr++ % buf_max];
 
 	if (access == DMA_BUF_ACCESS_TYPE_RWIO)
@@ -104,7 +104,7 @@ static struct zynq_ipif_dma_config dma_config[] = {
 		.buf_num = PERIOD_NUM,
 		.width = DATA_WIDTH,
 		.burst = 1,
-		.access = DMA_BUF_ACCESS_TYPE_RWIO,
+		.access = DMA_BUF_ACCESS_TYPE_MMAP,
 		.direction = DMA_DIR_IN,
 		.condition = DMA_condition,
 		.callback = DMA_input_callback,
@@ -118,7 +118,7 @@ static struct zynq_ipif_dma_config dma_config[] = {
 		.buf_num = PERIOD_NUM,
 		.width = DATA_WIDTH,
 		.burst = 1,
-		.access = DMA_BUF_ACCESS_TYPE_RWIO,
+		.access = DMA_BUF_ACCESS_TYPE_MMAP,
 		.direction = DMA_DIR_OUT,
 		.condition = DMA_condition,
 		.callback = DMA_output_callback,
