@@ -57,15 +57,22 @@ static struct zynq_ipif_regmap regmap[] = {
 	{0x344,	0,	1,	0,	1},	/* REG_DEBG_IRQ_SIG */
 };
 
-struct zynq_ipif_config ipif_config = {
+static int IRQ_handler(struct zynq_ipif *ipif)
+{
+	printf("---%s---\n", __func__);
+	return 0;
+}
+
+static struct zynq_ipif_config ipif_config = {
 	.regmap = regmap,
 	.regmap_size = ARRAY_SIZE(regmap),
+	.irq_handler = IRQ_handler,
 };
 
 #define TEST_SIZE	1024
 static int test_buf[2][TEST_SIZE];
 
-int DMA_input_callback(struct zynq_ipif_dma *dma)
+static int DMA_input_callback(struct zynq_ipif_dma *dma)
 {
 	u32 access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
 	u32 buf_max = DATA_BURST * PERIOD_NUM;
@@ -81,7 +88,7 @@ int DMA_input_callback(struct zynq_ipif_dma *dma)
 	return 0;
 }
 
-int DMA_output_callback(struct zynq_ipif_dma *dma)
+static int DMA_output_callback(struct zynq_ipif_dma *dma)
 {
 	u32 access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
 	u32 buf_max = DATA_BURST * PERIOD_NUM;

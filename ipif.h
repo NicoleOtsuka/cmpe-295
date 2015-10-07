@@ -70,7 +70,10 @@ struct zynq_ipif_dma_config {
 struct zynq_ipif {
 	struct zynq_ipif_dma dma[DMA_CHAN_MAX];
 	struct zynq_ipif_dma_share dma_share;
+	pthread_t epoll_thread, irq_thread;
 	struct zynq_ipif_regmap *regmap;
+	int epfd, fd;
+	sem_t sem;
 
 	int (*irq_handler) (struct zynq_ipif *);
 };
@@ -87,11 +90,13 @@ int reg_read(struct zynq_ipif_regmap *, u32, u32 *);
 int reg_write(struct zynq_ipif_regmap *, u32, u32);
 
 int dma_init(struct zynq_ipif_dma *, struct zynq_ipif_dma_config *);
-void dma_exit(struct zynq_ipif_dma *);
 int dma_read_buffer(struct zynq_ipif_dma *, u8 *, u32);
 int dma_write_buffer(struct zynq_ipif_dma *, u8 *, u32);
 int dma_enable(struct zynq_ipif_dma *, bool);
 int dma_start_server(struct zynq_ipif_dma_share *);
+void dma_exit(struct zynq_ipif_dma *);
 
 int zynq_ipif_init(struct zynq_ipif *, struct zynq_ipif_config *);
 int zynq_ipif_start_dma(struct zynq_ipif_dma_share *);
+int zynq_ipif_stop_dma(struct zynq_ipif_dma_share *);
+void zynq_ipif_dma_exit(struct zynq_ipif *);

@@ -107,7 +107,7 @@ static int dma_default_condition(struct zynq_ipif_dma *dma)
 	return 1;
 }
 
-static void *DMA_thread(void *threadid)
+static void *DMA_callback(void *threadid)
 {
 	struct zynq_ipif_dma *dma = (struct zynq_ipif_dma *)threadid;
 
@@ -188,7 +188,7 @@ int dma_init(struct zynq_ipif_dma *dma, struct zynq_ipif_dma_config *dma_config)
 
 	sem_init(&dma->sem, 0, 0);
 
-	ret = pthread_create(&dma->io_thread, NULL, DMA_thread, (void *)dma);
+	ret = pthread_create(&dma->io_thread, NULL, DMA_callback, (void *)dma);
 	if (ret) {
 		printf("failed to create pthread: %d\n", ret);
 		return ret;
@@ -224,15 +224,6 @@ int dma_init(struct zynq_ipif_dma *dma, struct zynq_ipif_dma_config *dma_config)
 	return 0;
 }
 
-void dma_exit(struct zynq_ipif_dma *dma)
-{
-	if (!dma || !dma->active)
-		return;
-
-	pthread_cancel(dma->io_thread);
-	close(dma->fd);
-}
-
 int dma_read_buffer(struct zynq_ipif_dma *dma, u8 *buf, u32 size)
 {
 	if (!dma || !dma->active)
@@ -266,9 +257,53 @@ int dma_enable(struct zynq_ipif_dma *dma, bool enable)
 	return 0;
 }
 
+void dma_exit(struct zynq_ipif_dma *dma)
+{
+	if (!dma || !dma->active)
+		return;
+
+	pthread_cancel(dma->io_thread);
+	close(dma->fd);
+}
+
+void *IRQ_thread(void *threadid)
+{
+	struct zynq_ipif *ipif = (struct zynq_ipif *)threadid;
+	struct epoll_event events;
+	int n;
+
+loop:
+	n = epoll_wait(ipif->epfd, &events, 1, -1);
+	if (n < 0 && errno == EINTR) {
+		goto loop;
+	} else if (n < 0) {
+		printf("Epoll failed: %i\n", errno);
+	} else if (n == 0) {
+		printf("TIMEOUT\n");
+	} else {
+		if (events.data.fd == ipif->fd)
+			sem_post(&ipif->sem);
+	}
+
+	goto loop;
+}
+
+void *IRQ_handler(void *threadid)
+{
+	struct zynq_ipif *ipif = (struct zynq_ipif *)threadid;
+
+	while (ipif->irq_handler) {
+		sem_wait(&ipif->sem);
+		ipif->irq_handler(ipif);
+	}
+
+	pthread_exit(NULL);
+}
+
 int zynq_ipif_init(struct zynq_ipif *ipif, struct zynq_ipif_config *ipif_config)
 {
 	struct zynq_ipif_dma_share *dma_share = &ipif->dma_share;
+	struct epoll_event ev;
 	int i, ret;
 
 	memset(ipif, 0, sizeof(*ipif));
@@ -291,6 +326,29 @@ int zynq_ipif_init(struct zynq_ipif *ipif, struct zynq_ipif_config *ipif_config)
 	dma_share->epfd = epoll_create(DMA_CHAN_MAX);
 
 	reg_init(ipif->regmap, ipif_config->regmap_size);
+
+	ipif->fd = open("/dev/zynq_ipif_irq", O_RDWR);
+	if (!ipif->fd)
+		return -ENODEV;
+
+	ipif->epfd = epoll_create1(0);
+
+	ev.events = EPOLLIN | EPOLLET;
+	ev.data.fd = ipif->fd;
+
+	ret = epoll_ctl(ipif->epfd, EPOLL_CTL_ADD, ipif->fd, &ev);
+	if (ret < 0)
+		printf("Error epoll_ctl: %i\n", errno);
+
+	ret = pthread_create(&ipif->epoll_thread, NULL, IRQ_thread, (void *)ipif);
+	if (ret)
+		printf("failed to create pthread: %d\n", ret);
+
+	ret = pthread_create(&ipif->irq_thread, NULL, IRQ_handler, (void *)ipif);
+	if (ret)
+		printf("failed to create pthread: %d\n", ret);
+
+	return 0;
 }
 
 int zynq_ipif_start_dma(struct zynq_ipif_dma_share *dma_share)
@@ -302,4 +360,14 @@ int zynq_ipif_start_dma(struct zynq_ipif_dma_share *dma_share)
 		printf("failed to create pthread: %d\n", ret);
 
 	return ret;
+}
+
+int zynq_ipif_stop_dma(struct zynq_ipif_dma_share *dma_share)
+{
+	return pthread_cancel(dma_share->thread);
+}
+
+void zynq_ipif_dma_exit(struct zynq_ipif *ipif)
+{
+	close(ipif->fd);
 }
