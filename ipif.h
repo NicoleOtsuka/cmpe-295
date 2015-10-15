@@ -18,7 +18,7 @@
 #define DMA_BUF_ACCESS_TYPE_RWIO	0
 #define DMA_BUF_ACCESS_TYPE_MMAP	1
 
-#define SYSFS_PATH	"/sys/bus/platform/drivers/zynq-ipif/43c20000.myip"
+#define SYSFS_PATH	"/sys/bus/platform/drivers/zynq-ipif/43c00000.zynq_ipif"
 
 struct zynq_ipif_regmap {
 	u32 addr, val;
