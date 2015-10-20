@@ -5,6 +5,7 @@
  * prototypes of interface accessing via zynq-ipif driver.
  */
 
+#include <sys/epoll.h>
 #include "utilis.h"
 
 #define DMA_DIR_IN	0
