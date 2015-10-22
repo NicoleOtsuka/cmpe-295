@@ -5,6 +5,8 @@
  * prototypes of interface accessing via zynq-ipif driver.
  */
 
+#include <pthread.h>
+#include <semaphore.h>
 #include <sys/epoll.h>
 #include "utilis.h"
 
