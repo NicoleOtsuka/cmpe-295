@@ -1,13 +1,13 @@
-CC = /home/nicolin/download/cmpe295/buildroot/output/host/usr/bin/arm-buildroot-linux-uclibcgnueabi-gcc
 CFLAGS = -g -O2 -Wall -lpthread
 HEADERS = ipif.h utilis.h
+OBJECTS_LIB = ipif.o
 OBJECTS_ZERO = test_zero.o ipif.o
 OBJECTS_LOOP = test_loop.o ipif.o
 
-default: test_zero test_loop
+default: test_zero test_loop libipif.so
 
 %.o: %.c $(HEADERS)
-	$(CC) -c $< -o $@
+	$(CC) -fpic -c $< -o $@
 
 test_zero: $(OBJECTS_ZERO)
 	$(CC) $(CFLAGS) $(OBJECTS_ZERO) -o $@
@@ -15,7 +15,10 @@ test_zero: $(OBJECTS_ZERO)
 test_loop: $(OBJECTS_LOOP)
 	$(CC) $(CFLAGS) $(OBJECTS_LOOP) -o $@
 
+libipif.so: $(OBJECTS_LIB)
+	$(CC) $(CFLAGS) $(OBJECTS_LIB) -shared -o $@
+
 .PHONY: clean
 
 clean:
-	rm -f $(OBJECTS) test
+	rm -f $(OBJECTS) $(OBJECTS_ZERO) $(OBJECTS_LOOP) test_zero test_loop libipif.so
