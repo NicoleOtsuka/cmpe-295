@@ -161,6 +161,9 @@ int dma_init(struct zynq_ipif_dma *dma, struct zynq_ipif_dma_config *dma_config)
 
 	dma_share = &dma->parent->dma_share;
 
+	sprintf(tmp, "dma%d_cyclic", dma->index);
+	sysfs_write(tmp, dma_config->cyclic);
+
 	sprintf(tmp, "dma%d_width", dma->index);
 	sysfs_write(tmp, dma_config->width);
 
@@ -198,10 +201,17 @@ int dma_init(struct zynq_ipif_dma *dma, struct zynq_ipif_dma_config *dma_config)
 	dma->ev.data.fd = dma->fd;
 
 	ret = epoll_ctl(dma_share->epfd, EPOLL_CTL_ADD, dma->fd, &dma->ev);
-	if (ret < 0)
+	if (ret < 0) {
 		printf("Error epoll_ctl: %i\n", errno);
+		return ret;
+	}
 
 	if (dma_config->access & DMA_BUF_ACCESS_TYPE_MASK == DMA_BUF_ACCESS_TYPE_MMAP) {
+		if (!dma_config->cyclic) {
+			printf("Scatter list does not work with mmap\n");
+			return ret;
+		}
+
 		dma->buf = mmap(0, PAGE_ALIGN(dma_size),
 				dma_config->direction ? PROT_READ : PROT_WRITE,
 				MAP_SHARED, dma->fd, 0);
@@ -211,6 +221,7 @@ int dma_init(struct zynq_ipif_dma *dma, struct zynq_ipif_dma_config *dma_config)
 	dma->width = dma_config->width;
 	dma->burst = dma_config->burst;
 	dma->access = dma_config->access;
+	dma->cyclic = dma_config->cyclic;
 	dma->buf_num = dma_config->buf_num;
 	dma->buf_size = dma_config->buf_size;
 	dma->callback = dma_config->callback;

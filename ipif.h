@@ -52,6 +52,7 @@ struct zynq_ipif_dma {
 	void *buf;
 	bool direction;
 	bool active;
+	bool cyclic;
 
 	int (*callback) (struct zynq_ipif_dma *);
 	int (*condition) (struct zynq_ipif_dma *);
@@ -65,6 +66,7 @@ struct zynq_ipif_dma_config {
 	u32 burst;
 	u32 access;
 	bool direction;
+	bool cyclic;
 
 	int (*condition) (struct zynq_ipif_dma *);
 	int (*callback) (struct zynq_ipif_dma *);
