@@ -150,7 +150,7 @@ int main()
 	reg_write(regmap, 0x0, 0x1f);
 	reg_write(regmap, 0x0, 0x0);
 
-	reg_write(regmap, 0x1c, 1000);
+	reg_write(regmap, 0x1c, 10000);
 
 	dma_init(&ipif.dma[0], &dma_config[0]);
 	dma_init(&ipif.dma[2], &dma_config[2]);
@@ -164,7 +164,7 @@ int main()
 	dma_enable(&ipif.dma[2], 1);
 
 	reg_write(regmap, 0x4, 0x1f);
-	reg_write(regmap, 0x8, 0xffffffff);
+	reg_write(regmap, 0x8, 0x6667);
 
 	sleep(2);
 
