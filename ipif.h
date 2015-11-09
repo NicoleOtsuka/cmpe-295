@@ -102,6 +102,6 @@ int dma_start_server(struct zynq_ipif_dma_share *);
 void dma_exit(struct zynq_ipif_dma *);
 
 int zynq_ipif_init(struct zynq_ipif *, struct zynq_ipif_config *);
-int zynq_ipif_start_dma(struct zynq_ipif_dma_share *);
-int zynq_ipif_stop_dma(struct zynq_ipif_dma_share *);
-void zynq_ipif_dma_exit(struct zynq_ipif *);
+int zynq_ipif_prepare_dma_share(struct zynq_ipif_dma_share *);
+int zynq_ipif_unprepare_dma_share(struct zynq_ipif_dma_share *);
+void zynq_ipif_exit(struct zynq_ipif *);

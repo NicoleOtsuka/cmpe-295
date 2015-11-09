@@ -361,7 +361,7 @@ int zynq_ipif_init(struct zynq_ipif *ipif, struct zynq_ipif_config *ipif_config)
 	return 0;
 }
 
-int zynq_ipif_start_dma(struct zynq_ipif_dma_share *dma_share)
+int zynq_ipif_prepare_dma_share(struct zynq_ipif_dma_share *dma_share)
 {
 	int ret;
 
@@ -372,12 +372,12 @@ int zynq_ipif_start_dma(struct zynq_ipif_dma_share *dma_share)
 	return ret;
 }
 
-int zynq_ipif_stop_dma(struct zynq_ipif_dma_share *dma_share)
+int zynq_ipif_unprepare_dma_share(struct zynq_ipif_dma_share *dma_share)
 {
 	return pthread_cancel(dma_share->thread);
 }
 
-void zynq_ipif_dma_exit(struct zynq_ipif *ipif)
+void zynq_ipif_exit(struct zynq_ipif *ipif)
 {
 	close(ipif->fd);
 }
