@@ -114,6 +114,7 @@ static struct zynq_ipif_dma_config dma_config[] = {
 		.buf_num = PERIOD_NUM,
 		.width = DATA_WIDTH,
 		.burst = 1,
+		.cyclic = 1,
 		.access = DMA_BUF_ACCESS_TYPE_RWIO,
 		.direction = DMA_DIR_IN,
 		.condition = DMA_condition,
@@ -128,6 +129,7 @@ static struct zynq_ipif_dma_config dma_config[] = {
 		.buf_num = PERIOD_NUM,
 		.width = DATA_WIDTH,
 		.burst = 1,
+		.cyclic = 1,
 		.access = DMA_BUF_ACCESS_TYPE_RWIO,
 		.direction = DMA_DIR_OUT,
 		.condition = DMA_condition,
@@ -155,7 +157,7 @@ int main()
 	dma_init(&ipif.dma[0], &dma_config[0]);
 	dma_init(&ipif.dma[2], &dma_config[2]);
 
-	zynq_ipif_start_dma(&ipif.dma_share);
+	zynq_ipif_prepare_dma_share(&ipif.dma_share);
 
 	/* Fill the ring buffer as the initialization */
 	dma_write_buffer(&ipif.dma[0], (u8 *)test_buf[0], BUF_SIZE);
@@ -174,6 +176,8 @@ int main()
 	dma_enable(&ipif.dma[0], 0);
 	dma_enable(&ipif.dma[2], 0);
 
+	zynq_ipif_unprepare_dma_share(&ipif.dma_share);
+
 	dma_exit(&ipif.dma[0]);
 	dma_exit(&ipif.dma[2]);
 
@@ -183,6 +187,8 @@ int main()
 
 	printf("test %s, %d, %d\n", ret ? "failed" : "succeed",
 	       ipif.dma[0].io_ptr, ipif.dma[2].io_ptr);
+
+	zynq_ipif_exit(&ipif);
 
 	printf("dumping results...\n");
 	sprintf(cmd, "rm -f dump");
