@@ -62,7 +62,7 @@ static int sysfs_write(char *node, u32 value)
 	return ret;
 }
 
-int reg_init(struct zynq_ipif_regmap *regmap, u32 size)
+static int reg_init(struct zynq_ipif_regmap *regmap, u32 size)
 {
 	u32 i;
 
@@ -316,6 +316,11 @@ int zynq_ipif_init(struct zynq_ipif *ipif, struct zynq_ipif_config *ipif_config)
 	struct epoll_event ev;
 	int i, ret;
 
+	if (!ipif) {
+		printf("Null pointer for ipif\n");
+		return -ENODEV;
+	}
+
 	memset(ipif, 0, sizeof(*ipif));
 
 	if (!ipif_config->regmap) {
@@ -379,5 +384,7 @@ int zynq_ipif_unprepare_dma_share(struct zynq_ipif_dma_share *dma_share)
 
 void zynq_ipif_exit(struct zynq_ipif *ipif)
 {
+	pthread_cancel(ipif->irq_thread);
+	pthread_cancel(ipif->epoll_thread);
 	close(ipif->fd);
 }

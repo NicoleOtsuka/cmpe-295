@@ -90,7 +90,6 @@ struct zynq_ipif_config {
 	int (*irq_handler) (struct zynq_ipif *);
 };
 
-int reg_init(struct zynq_ipif_regmap *, u32);
 int reg_read(struct zynq_ipif_regmap *, u32, u32 *);
 int reg_write(struct zynq_ipif_regmap *, u32, u32);
 
