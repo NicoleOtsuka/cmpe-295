@@ -42,15 +42,7 @@ static struct zynq_ipif_regmap regmap[] = {
 	{0x318,	0,	1,	0,	1},	/* REG_DEBG_DMA_ACKCNT1 */
 	{0x31c,	0,	1,	0,	1},	/* REG_DEBG_DMA_ACKCNT2 */
 	{0x320,	0,	1,	0,	1},	/* REG_DEBG_DMA_ACKCNT3 */
-	{0x324,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO0_WP */
-	{0x328,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO0_RP */
-	{0x32c,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO1_WP */
-	{0x330,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO1_RP */
-	{0x334,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO2_WP */
-	{0x338,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO2_RP */
-	{0x33c,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO3_WP */
-	{0x340,	0,	1,	0,	1},	/* REG_DEBG_DMA_FIFO3_RP */
-	{0x344,	0,	1,	0,	1},	/* REG_DEBG_IRQ_SIG */
+	{0x324,	0,	1,	0,	1},	/* REG_DEBG_IRQ_SIG */
 };
 
 static int IRQ_handler(struct zynq_ipif *ipif)
