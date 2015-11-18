@@ -10,11 +10,9 @@
 #include "ipif.h"
 
 #define DATA_WIDTH	0x4
-#define DATA_BURST	0x4
+#define TEST_SIZE	1024
 
-#define PERIOD_NUM	0x2
-#define PERIOD_SIZE	(DATA_BURST * DATA_WIDTH)
-#define BUF_SIZE	(PERIOD_SIZE * PERIOD_NUM)
+#define BUF_SIZE	(TEST_SIZE * DATA_WIDTH)
 
 static struct zynq_ipif_regmap regmap[] = {
 	/* Addr value   read	write	volatile */
@@ -67,54 +65,32 @@ static struct zynq_ipif_config ipif_config = {
 	.irq_handler = IRQ_handler,
 };
 
-#define TEST_SIZE	1024
 static int test_buf[2][TEST_SIZE];
 
 static int DMA_input_callback(struct zynq_ipif_dma *dma)
 {
-	u32 access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
-	u32 buf_max = DATA_BURST * PERIOD_NUM;
-	u32 *buf = (u32 *)dma->buf;
-	int i;
-
-	for (i = 0; access && i < DATA_BURST && dma->io_ptr < TEST_SIZE; i++)
-		buf[dma->buf_ptr++ % buf_max] = test_buf[0][dma->io_ptr++];
-
-	if (access == DMA_BUF_ACCESS_TYPE_RWIO)
-		dma_write_buffer(dma, (u8 *)&test_buf[0][dma->io_ptr], PERIOD_SIZE);
-
+	printf("---%s---\n", __func__);
 	return 0;
 }
 
 static int DMA_output_callback(struct zynq_ipif_dma *dma)
 {
-	u32 access = dma->access & DMA_BUF_ACCESS_TYPE_MASK;
-	u32 buf_max = DATA_BURST * PERIOD_NUM;
-	u32 *buf = (u32 *)dma->buf;
-	int i;
-
-	for (i = 0; access && i < DATA_BURST && dma->io_ptr < TEST_SIZE; i++)
-		test_buf[1][dma->io_ptr++] = buf[dma->buf_ptr++ % buf_max];
-
-	if (access == DMA_BUF_ACCESS_TYPE_RWIO)
-		dma_read_buffer(dma, (u8 *)&test_buf[1][dma->io_ptr], PERIOD_SIZE);
-
+	printf("---%s---\n", __func__);
 	return 0;
 }
 
 static int DMA_condition(struct zynq_ipif_dma *dma)
 {
-	return dma->io_ptr < TEST_SIZE;
+	return dma->io_ptr != TEST_SIZE;
 }
 
 static struct zynq_ipif_dma_config dma_config[] = {
 	{
 		.reg_addr = 0x200,
-		.buf_size = PERIOD_SIZE,
-		.buf_num = PERIOD_NUM,
+		.buf_size = BUF_SIZE,
+		.buf_num = 1,
 		.width = DATA_WIDTH,
 		.burst = 1,
-		.cyclic = 1,
 		.access = DMA_BUF_ACCESS_TYPE_RWIO,
 		.direction = DMA_DIR_IN,
 		.condition = DMA_condition,
@@ -125,11 +101,10 @@ static struct zynq_ipif_dma_config dma_config[] = {
 	},
 	{
 		.reg_addr = 0x208,
-		.buf_size = PERIOD_SIZE,
-		.buf_num = PERIOD_NUM,
+		.buf_size = BUF_SIZE,
+		.buf_num = 1,
 		.width = DATA_WIDTH,
 		.burst = 1,
-		.cyclic = 1,
 		.access = DMA_BUF_ACCESS_TYPE_RWIO,
 		.direction = DMA_DIR_OUT,
 		.condition = DMA_condition,
@@ -175,6 +150,8 @@ int main()
 
 	dma_enable(&ipif.dma[0], 0);
 	dma_enable(&ipif.dma[2], 0);
+
+	dma_read_buffer(&ipif.dma[2], (u8 *)test_buf[1], BUF_SIZE);
 
 	zynq_ipif_unprepare_dma_share(&ipif.dma_share);
 
