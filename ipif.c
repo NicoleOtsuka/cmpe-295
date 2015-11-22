@@ -272,7 +272,8 @@ void dma_exit(struct zynq_ipif_dma *dma)
 	if (!dma || !dma->active)
 		return;
 
-	pthread_cancel(dma->io_thread);
+	if (dma)
+		pthread_cancel(dma->io_thread);
 	close(dma->fd);
 }
 
@@ -379,12 +380,15 @@ int zynq_ipif_prepare_dma_share(struct zynq_ipif_dma_share *dma_share)
 
 int zynq_ipif_unprepare_dma_share(struct zynq_ipif_dma_share *dma_share)
 {
-	return pthread_cancel(dma_share->thread);
+	pthread_cancel(dma_share->thread);
+	return pthread_join(dma_share->thread, NULL);
 }
 
 void zynq_ipif_exit(struct zynq_ipif *ipif)
 {
 	pthread_cancel(ipif->irq_thread);
+	pthread_join(ipif->irq_thread, NULL);
 	pthread_cancel(ipif->epoll_thread);
+	pthread_join(ipif->epoll_thread, NULL);
 	close(ipif->fd);
 }
